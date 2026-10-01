@@ -1,0 +1,33 @@
+name: Build FlightVR Windows Installer
+on:
+  push:
+    branches: [ "flightvr-stereo-v2" ]
+    paths:
+      - "pc/**"
+      - ".github/workflows/build-flightvr-windows.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish single-file installer
+        shell: pwsh
+        run: |
+          dotnet publish pc/FlightVRInstaller/FlightVRInstaller.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=false -p:IncludeNativeLibrariesForSelfExtract=true -o dist
+          if (!(Test-Path "dist/FlightVR-Installer.exe")) { throw "FlightVR-Installer.exe was not generated" }
+      - name: SHA256
+        shell: pwsh
+        run: |
+          (Get-FileHash dist/FlightVR-Installer.exe -Algorithm SHA256).Hash | Out-File dist/FlightVR-Installer.exe.sha256.txt -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FlightVR-Windows-Installer
+          path: |
+            dist/FlightVR-Installer.exe
+            dist/FlightVR-Installer.exe.sha256.txt
+          if-no-files-found: error

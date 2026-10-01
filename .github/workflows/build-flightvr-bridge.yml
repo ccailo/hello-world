@@ -1,0 +1,25 @@
+name: Build FlightVR Bridge Windows
+on:
+  push:
+    branches: [ "flightvr-pc-bridge-v1" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish single-file EXE
+        shell: pwsh
+        run: |
+          dotnet publish FlightVRBridge/FlightVRBridge.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+          Copy-Item "publish/FlightVR-Bridge-Setup.exe" "FlightVR-Bridge-Setup.exe"
+      - name: Upload Windows EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlightVR-Bridge-Windows
+          path: FlightVR-Bridge-Setup.exe
+          if-no-files-found: error

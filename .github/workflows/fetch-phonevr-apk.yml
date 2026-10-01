@@ -1,0 +1,23 @@
+name: Fetch PhoneVR APK
+on:
+  push:
+    branches: [ "flightvr-stereo-v2" ]
+    paths:
+      - ".github/workflows/fetch-phonevr-apk.yml"
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download PhoneVR APK
+        run: |
+          curl -L --fail --retry 3 "https://github.com/PhoneVR-Developers/PhoneVR/releases/download/v2.0.0-beta/PhoneVR-v2.0.0-beta.apk" -o PhoneVR-v2.0.0-beta.apk
+          test -s PhoneVR-v2.0.0-beta.apk
+          sha256sum PhoneVR-v2.0.0-beta.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PhoneVR-v2.0.0-beta-APK
+          path: PhoneVR-v2.0.0-beta.apk
+          if-no-files-found: error
